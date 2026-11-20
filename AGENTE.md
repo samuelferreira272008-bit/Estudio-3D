@@ -61,9 +61,12 @@ Rodada 2: **elenco** (quem é o personagem principal e quem faz as perguntas/esp
 Se o criador disser "pode sugerir", proponha padrões coerentes com o nicho usando `docs/roteiro-viral.md` (abertura = pergunta intrigante ou crença errada; fechamento = paga o gancho + uma pergunta fácil de comentar). Mostre as escolhas finais em uma lista curta e confirme.
 
 ### 2.3 Voz — o criador escolhe uma
-- **Paga (ElevenLabs):** melhor naturalidade. Ele cria uma chave de API e a coloca no `.env` (copie `.env.example`). Prefira que **ele mesmo** edite o `.env`.
-- **Grátis (Kokoro + Whisper):** roda no computador dele, sem custo. Você roda o diagnóstico, explica o resultado; se o computador aguenta, **pede permissão** (download de ~0,5–1 GB em `.voz/`) e instala sozinho.
-Siga o passo a passo de `docs/voz.md`. Termine com `node tools/voz.mjs testar` e peça para ele ouvir o arquivo de teste.
+- **Grátis em nuvem (Edge TTS, sem chave — recomendada):** funciona na hora sem instalar Python nem configurar chave (`node tools/voz.mjs configurar-edge`).
+- **Grátis via Google AI Studio (Gemini TTS):** usa `GEMINI_API_KEY` (`node tools/voz.mjs configurar-gemini`).
+- **Grátis alternativa (Google Tradutor TTS, sem chave):** `node tools/voz.mjs configurar-google`.
+- **Grátis local (Kokoro + Whisper):** roda no computador dele, sem custo (`node tools/voz.mjs instalar`, download de ~0,5–1 GB em `.voz/` com permissão).
+- **Paga (ElevenLabs):** melhor naturalidade (`ELEVENLABS_API_KEY` no `.env`).
+Siga o passo a passo de `docs/voz.md`. Termine com `node tools/voz.mjs testar` e peça para ele ouvir o arquivo de teste (ou abrir a aba **Vozes** no preview).
 
 ### 2.4 Pronto
 Diga: "Tudo pronto! Me conta a ideia do vídeo e quanto tempo ele deve ter." (Se `config/canal.json` já existir, comece daqui.)

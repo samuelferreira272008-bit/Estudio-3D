@@ -4,8 +4,14 @@
   "private": true,
   "type": "module",
   "description": "Pack para criar vídeos 3D explicativos (estilo low-poly) com IA: personagens, cenário, motor de render, voz grátis ou paga e o prompt universal AGENTE.md.",
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
+    "dev": "node tools/serve.mjs",
+    "start": "node tools/serve.mjs",
+    "build": "node tools/check.mjs",
+    "lint": "node -e \"import('node:fs').then(async fs=>{const{execFileSync}=await import('node:child_process');const w=d=>fs.readdirSync(d,{withFileTypes:true}).flatMap(e=>e.isDirectory()?w(d+'/'+e.name):(/\\.m?js$/.test(e.name)?[d+'/'+e.name]:[]));for(const f of['assets','engine','preview','tools'].flatMap(w))execFileSync(process.execPath,['--check',f],{stdio:'inherit'})})\"",
     "preview": "node tools/serve.mjs",
     "catalog": "node tools/build-catalog.mjs",
     "check": "node tools/check.mjs",
@@ -16,6 +22,8 @@
     "empacotar": "node tools/empacotar.mjs"
   },
   "dependencies": {
+    "@google/genai": "^3.6.1",
+    "msedge-tts": "^2.1.1",
     "puppeteer-core": "^25.16.0",
     "three": "^0.187.0"
   }

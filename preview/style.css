@@ -13,3 +13,32 @@ nav a { flex: 1; text-align: center; padding: 6px 4px; border-radius: 8px; backg
 nav a.on { background: #3d8bfd; color: #fff; }
 .tag { position: fixed; transform: translate(-50%, 0); background: rgba(20, 24, 30, .78); color: #fff; padding: 3px 8px;
        border-radius: 8px; font-size: 12px; white-space: nowrap; pointer-events: none; }
+
+body.voz-page { overflow-y: auto; overflow-x: hidden; min-height: 100%; height: auto; }
+.voz-wrap { max-width: 1080px; margin: 20px auto; padding: 0 12px; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+@media (max-width: 820px) { .voz-wrap { grid-template-columns: minmax(0, 1fr); margin: 12px auto; } }
+.voz-card { min-width: 0; background: rgba(20, 24, 30, .88); color: #fff; padding: 16px; border-radius: 12px; display: grid; gap: 12px; font-size: 13px; box-sizing: border-box; }
+.voz-card h1 { margin: 0; font-size: 18px; }
+.voz-card h2 { margin: 0; font-size: 16px; }
+.voz-card h3 { margin: 4px 0 0; font-size: 13px; color: #cfd6df; }
+.voz-card label { min-width: 0; display: grid; gap: 5px; font-weight: 600; }
+.voz-card select, .voz-card input[type="text"], .voz-card textarea { width: 100%; min-width: 0; max-width: 100%; box-sizing: border-box; padding: 7px 9px; border-radius: 8px; border: 1px solid #3f4c5c; background: #1c232c; color: #fff; font: inherit; }
+.voz-card textarea { resize: vertical; line-height: 1.45; }
+.voz-card .row { display: flex; gap: 8px; flex-wrap: wrap; }
+.voz-card button { flex: 1; min-width: 140px; padding: 9px 12px; border: 0; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; color: #fff; background: #2f3a47; }
+.voz-card button.btn-primary { background: #3d8bfd; }
+.voz-card button:disabled { opacity: .6; cursor: wait; }
+.voz-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.voz-grid[hidden] { display: none; }
+@media (max-width: 560px) { .voz-grid { grid-template-columns: minmax(0, 1fr); } }
+.muted { color: #cfd6df; font-size: 12px; line-height: 1.45; margin: 0; }
+.feedback { min-height: 18px; font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.feedback.ok { color: #8be28b; }
+.feedback.erro { color: #ffb4b4; }
+.feedback.info { color: #9fd3f2; }
+#player { width: 100%; max-width: 100%; }
+.palavras-box { display: flex; flex-wrap: wrap; gap: 5px; background: #141920; padding: 10px; border-radius: 8px; max-height: 190px; overflow: auto; }
+.palavra-chip { padding: 3px 6px; border-radius: 6px; background: #26313e; color: #e6edf5; cursor: pointer; font-size: 12px; transition: background .1s; }
+.palavra-chip.ativa { background: #3d8bfd; color: #fff; font-weight: 700; }
+.frases-lista { margin: 0; padding-left: 18px; display: grid; gap: 6px; max-height: 220px; overflow: auto; font-size: 12px; color: #cfd6df; }
+.frases-lista b { color: #fff; }

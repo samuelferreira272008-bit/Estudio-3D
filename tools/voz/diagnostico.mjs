@@ -72,6 +72,12 @@ export function diagnosticar(raiz) {
   if (nodeMaior < 18) pendencias.push(`Node.js ${process.versions.node} é antigo; instale a versão 18 ou mais nova`);
 
   const grande = ramGB >= 16 && nucleos >= 8;
+  const apisGratuitas = {
+    edge: true,
+    google: true,
+    gemini: Boolean(process.env.GEMINI_API_KEY),
+  };
+
   return {
     sistema: `${os.platform()} ${os.release()} (${os.arch()})`,
     cpu: `${cpus[0]?.model?.trim() || 'desconhecida'} — ${nucleos} núcleos`,
@@ -85,6 +91,7 @@ export function diagnosticar(raiz) {
     navegador,
     veredito: nivel, // ok | limitado | nao
     podeUsarVozGratis: nivel !== 'nao' && pendencias.filter((p) => /Python|disco/.test(p)).length === 0,
+    apisGratuitas,
     modeloKokoro: nivel === 'ok' && ramGB >= 8 ? 'fp32' : 'int8',
     whisper: grande ? 'small' : ramGB >= 8 ? 'base' : 'tiny',
     motivos,
@@ -102,10 +109,15 @@ export function relatorio(d) {
   L.push(`  Placa de vídeo . ${d.gpu || 'não detectada (não é necessária)'}`);
   L.push(`  Node.js ........ ${d.node}   Python: ${d.python || 'NÃO ENCONTRADO'}   ffmpeg: ${d.ffmpeg ? 'ok' : 'NÃO ENCONTRADO'}   Navegador: ${d.navegador ? 'ok' : 'NÃO ENCONTRADO'}`);
   L.push('');
-  const v = { ok: 'Seu computador roda a voz grátis sem problemas.', limitado: 'Seu computador roda a voz grátis, mas com limitações.', nao: 'Seu computador NÃO tem requisitos mínimos para a voz grátis. Use a voz paga (ElevenLabs).' }[d.veredito];
-  L.push(`Veredito: ${v}`);
+  L.push('APIs gratuitas de voz (sem precisar instalar Python/Kokoro):');
+  L.push('  - Edge TTS (Microsoft Neural): pronto para uso, sem chave (node tools/voz.mjs configurar-edge)');
+  L.push(`  - Gemini TTS (Google AI Studio): ${d.apisGratuitas?.gemini ? 'GEMINI_API_KEY detectada' : 'defina GEMINI_API_KEY'} (node tools/voz.mjs configurar-gemini)`);
+  L.push('  - Google Tradutor TTS: pronto para uso, sem chave (node tools/voz.mjs configurar-google)');
+  L.push('');
+  const v = { ok: 'Seu computador também roda a voz grátis local (Kokoro) sem problemas.', limitado: 'Seu computador roda a voz local (Kokoro), mas com limitações.', nao: 'Seu computador NÃO tem requisitos mínimos para a voz local (Kokoro). Use Edge TTS, Gemini TTS ou ElevenLabs.' }[d.veredito];
+  L.push(`Veredito local: ${v}`);
   for (const m of d.motivos) L.push(`  - ${m}`);
-  if (d.pendencias.length) { L.push('Pendências:'); for (const p of d.pendencias) L.push(`  - ${p}`); }
-  if (d.veredito !== 'nao') L.push(`Configuração escolhida: Kokoro (${d.modeloKokoro === 'fp32' ? 'modelo completo, melhor qualidade' : 'modelo leve int8, mais rápido'}) + Whisper "${d.whisper}".`);
+  if (d.pendencias.length) { L.push('Pendências para voz local / render:'); for (const p of d.pendencias) L.push(`  - ${p}`); }
+  if (d.veredito !== 'nao') L.push(`Configuração local sugerida: Kokoro (${d.modeloKokoro === 'fp32' ? 'modelo completo, melhor qualidade' : 'modelo leve int8, mais rápido'}) + Whisper "${d.whisper}".`);
   return L.join('\n');
 }

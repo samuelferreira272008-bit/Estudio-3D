@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Preview de voz — APIs gratuitas</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="voz-page">
+<main class="voz-wrap">
+  <section class="voz-card voz-controls">
+    <nav>
+      <a href="/preview/index.html">Personagens</a>
+      <a href="/preview/cenario.html">Cenário</a>
+      <a class="on" href="/preview/voz.html">Vozes</a>
+    </nav>
+
+    <div class="voz-head">
+      <h1>Narração e APIs de Voz</h1>
+      <p id="status-geral" class="muted">Carregando provedores...</p>
+    </div>
+
+    <div class="voz-grid">
+      <label>Provedor de voz
+        <select id="provedor">
+          <option value="edge">Edge TTS (Grátis, sem chave)</option>
+          <option value="gemini">Gemini TTS — Google AI Studio (Grátis)</option>
+          <option value="google">Google Tradutor TTS (Grátis, sem chave)</option>
+          <option value="kokoro">Kokoro + Whisper (Local)</option>
+          <option value="elevenlabs">ElevenLabs (Paga)</option>
+        </select>
+      </label>
+
+      <label>Voz
+        <select id="voz"></select>
+      </label>
+    </div>
+
+    <div id="gemini-opts" class="voz-grid" hidden>
+      <label>Modelo Gemini TTS
+        <select id="modelo">
+          <option value="gemini-3.8-flash-lite-tts">gemini-3.8-flash-lite-tts (rápido)</option>
+          <option value="gemini-3.8-flash-tts">gemini-3.8-flash-tts (expressivo)</option>
+        </select>
+      </label>
+      <label>Estilo da narração (opcional)
+        <input id="estilo" type="text" placeholder="Ex.: Narrador animado de vídeo curto">
+      </label>
+    </div>
+
+    <div class="voz-grid">
+      <label><span>Velocidade (<span id="vel-val">1.00×</span>)</span>
+        <input id="velocidade" type="range" min="0.7" max="1.4" step="0.05" value="1">
+      </label>
+
+      <label>Destino
+        <select id="projeto">
+          <option value="_teste-voz">Teste rápido (projects/_teste-voz)</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Texto da narração
+      <textarea id="texto" rows="4">Você já se perguntou por que uma rua recém-asfaltada dura anos mesmo com caminhões pesados passando todo dia? O segredo não está só na camada preta de cima.</textarea>
+    </label>
+
+    <div class="row">
+      <button id="gerar" type="button" class="btn-primary">Gerar e ouvir</button>
+      <button id="salvar" type="button" class="btn-secondary">Definir como padrão</button>
+    </div>
+
+    <div id="feedback" class="feedback" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="voz-card voz-result">
+    <h2>Prévia sincronizada</h2>
+    <audio id="player" controls></audio>
+    <div id="resumo" class="muted">Gere um áudio para testar a voz e conferir os tempos das legendas.</div>
+
+    <h3>Legenda palavra por palavra</h3>
+    <div id="palavras-box" class="palavras-box">
+      <span class="muted">As palavras sincronizadas aparecerão aqui.</span>
+    </div>
+
+    <h3>Frases para o storyboard (frases.json)</h3>
+    <ol id="frases-lista" class="frases-lista"></ol>
+  </section>
+</main>
+<script type="module" src="./voz.js"></script>
+</body>
+</html>
