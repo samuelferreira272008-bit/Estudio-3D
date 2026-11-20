@@ -32,7 +32,7 @@ A voz fala cerca de **2,6 palavras por segundo** (confirme depois de gerar o áu
 - **Número surpreendente:** "{Coisa pequena} pesa/custa/dura {número absurdo}."
 - **Polêmica honesta:** uma discordância real entre especialistas ou entre o que se ensina e o que os dados mostram. Apresente os dois lados com neutralidade.
 
-Regras do gancho: **nada de "oi pessoal", nome do canal, "neste vídeo vamos ver"**. O título ou a pergunta já aparece escrito na tela no instante 0. **O gancho tem que ser verdadeiro e ser respondido no vídeo**: promessa não cumprida derruba a retenção e a confiança.
+Regras do gancho: **nada de "oi pessoal", nome do canal, "neste vídeo vamos ver"**. O título ou a pergunta já aparece escrito na tela no instante 0. **O gancho tem que ser verdadeiro e ser respondido no vídeo**: promessa não cumprida derruba a retenção e a confiança. Consulte as **21 fórmulas de gancho** e teste a primeira frase com `node tools/youtube.mjs gancho "<frase>"` (veja `docs/youtube.md`).
 
 ## Segunda pessoa e problema → solução
 

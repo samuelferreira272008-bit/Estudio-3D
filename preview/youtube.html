@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estúdio YouTube — Gancho, Retenção, Capa e Nicho</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="voz-page">
+<main class="yt-wrap">
+  <div class="yt-col">
+    <section class="voz-card">
+      <nav>
+        <a href="/preview/index.html">Personagens</a>
+        <a href="/preview/cenario.html">Cenário</a>
+        <a href="/preview/modelos.html">Modelos 3D</a>
+        <a href="/preview/voz.html">Vozes</a>
+        <a class="on" href="/preview/youtube.html">YouTube</a>
+      </nav>
+
+      <div class="voz-head">
+        <h1>Otimizador YouTube</h1>
+        <p id="yt-status" class="muted">Carregando projetos e fórmulas...</p>
+      </div>
+
+      <div class="voz-grid">
+        <label>Projeto para auditar e publicar
+          <select id="yt-projeto"></select>
+        </label>
+        <div style="display:grid; align-content:end;">
+          <button id="btn-auditar" type="button" class="btn-primary">Auditar projeto</button>
+        </div>
+      </div>
+
+      <div id="yt-feedback" class="feedback" role="status" aria-live="polite"></div>
+    </section>
+
+    <section class="voz-card">
+      <div class="yt-section-head">
+        <h2>Testador de Gancho (0–3 s)</h2>
+        <span id="gancho-badge" class="yt-badge">Sem nota</span>
+      </div>
+
+      <label>21 fórmulas virais de abertura
+        <select id="formula-select"></select>
+      </label>
+
+      <div id="formula-box" class="yt-formula-box" hidden>
+        <div id="formula-desc"></div>
+        <div class="row">
+          <button id="btn-usar-exemplo" type="button" class="btn-compact">Testar exemplo desta fórmula</button>
+        </div>
+      </div>
+
+      <label>Primeira frase falada no vídeo
+        <textarea id="gancho-texto" rows="3" placeholder="Ex.: Noventa e sete por cento do asfalto racha pelo que está embaixo, não por cima."></textarea>
+      </label>
+
+      <div class="row">
+        <button id="btn-avaliar-gancho" type="button" class="btn-primary">Avaliar gancho</button>
+      </div>
+
+      <div id="gancho-resultado"></div>
+    </section>
+
+    <section class="voz-card">
+      <div class="yt-section-head">
+        <h2>Pacote Clique &amp; SEO (Título + Capa)</h2>
+        <span id="pacote-badge" class="yt-badge">Sem nota</span>
+      </div>
+
+      <label>Título do vídeo (alvo: ≤ 40 no celular, ≤ 60 na busca)
+        <input id="pkg-titulo" type="text" placeholder="Ex.: Por que o asfalto aguenta caminhões pesados?">
+      </label>
+
+      <div class="yt-meter-wrap">
+        <div class="yt-meter-meta">
+          <span id="pkg-chars">0 / 60 caracteres recomendados (máx. 100)</span>
+          <span id="pkg-corte">Cabe inteiro no celular</span>
+        </div>
+        <div class="yt-bar-bg">
+          <div id="pkg-meter-bar" class="yt-bar-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <label>Texto curto da capa (2 a 5 palavras que NÃO repetem o título)
+        <input id="pkg-capa" type="text" placeholder="Ex.: O segredo embaixo">
+      </label>
+
+      <label>Descrição (2 primeiras linhas com a promessa)
+        <textarea id="pkg-descricao" rows="3" placeholder="Primeira linha com a pergunta ou promessa, depois contexto curto e fontes."></textarea>
+      </label>
+
+      <div class="voz-grid">
+        <label>Hashtags (3 a 5)
+          <input id="pkg-hashtags" type="text" placeholder="#shorts #engenharia #curiosidades">
+        </label>
+        <label>Tags do YouTube Studio (separadas por vírgula)
+          <input id="pkg-tags" type="text" placeholder="asfalto, engenharia civil, como funciona">
+        </label>
+      </div>
+
+      <label>Comentário fixado (mesma pergunta da última cena)
+        <input id="pkg-comentario" type="text" placeholder="Você achava que era só asfalto ou já sabia das camadas?">
+      </label>
+
+      <div class="row">
+        <button id="btn-avaliar-pacote" type="button">Avaliar título e capa</button>
+        <button id="btn-salvar-postagem" type="button" class="btn-primary">Salvar postagem.md</button>
+      </div>
+
+      <div id="pacote-resultado"></div>
+    </section>
+  </div>
+
+  <div class="yt-col">
+    <section class="voz-card">
+      <div class="yt-section-head">
+        <h2>Auditoria de Retenção</h2>
+        <span id="aud-nota" class="yt-badge">Aguardando auditoria</span>
+      </div>
+
+      <p id="aud-resumo" class="muted">Selecione um projeto e clique em <b>Auditar projeto</b> para avaliar gancho, ritmo das cenas, cadência de fala, pacote de clique e fechamento.</p>
+
+      <div id="aud-pilares" class="yt-pilares"></div>
+
+      <div id="aud-acoes-wrap" hidden>
+        <h3>Prioridades para subir a retenção</h3>
+        <ol id="aud-acoes" class="yt-lista"></ol>
+      </div>
+    </section>
+
+    <section class="voz-card">
+      <h2>Pesquisa de Nicho no YouTube</h2>
+      <p class="muted">Analise títulos concorrentes, tamanho médio, uso de perguntas e vídeos fora da curva (Outliers) antes de fechar o roteiro.</p>
+
+      <form id="form-pesquisa" class="modelos-search-row">
+        <input id="yt-query" type="text" placeholder="Pesquisar tema (ex.: como funciona asfalto, ponte estaiada)">
+        <button id="btn-pesquisar" type="submit" class="btn-primary">Pesquisar</button>
+      </form>
+
+      <div id="pesquisa-stats" class="yt-stats-row" hidden>
+        <div class="yt-stat"><small>Média no título</small><strong id="stat-chars">-</strong></div>
+        <div class="yt-stat"><small>Com pergunta / número</small><strong id="stat-padrao">-</strong></div>
+        <div class="yt-stat"><small>Mediana de views</small><strong id="stat-mediana">-</strong></div>
+      </div>
+
+      <p id="pesquisa-keywords" class="muted" hidden></p>
+
+      <div id="pesquisa-lista" class="yt-videos" aria-live="polite"></div>
+    </section>
+  </div>
+</main>
+<script type="module" src="./youtube.js"></script>
+</body>
+</html>

@@ -32,17 +32,18 @@ Regras de conduta (valem sempre):
 | `docs/roteiro-viral.md` | como escrever o roteiro que prende e gera comentário |
 | `docs/voz.md` | voz grátis (Kokoro + Whisper) ou paga (ElevenLabs) |
 | `docs/processos.md` | **obrigatório**: como mostrar qualquer processo em animação (plano de animação, vocabulário visual, receitas) |
+| `docs/youtube.md` | **estratégia YouTube**: 21 fórmulas de gancho, regra Título+Capa, retenção, loop e pesquisa de concorrentes |
 | `docs/postagem.md` | capa, título, descrição, comentário fixado |
 | `config/canal.json` | identidade do canal (criada na primeira vez) |
 | `config/voz.json` | voz escolhida (criada pelos comandos de voz) |
 | `projects/<nome>/` | um vídeo: `ideia.md`, `narracao.txt`, `storyboard.json`, áudio, `render/` |
 | `templates/` | modelos de canal, ideia e storyboard |
 | `engine/` | motor que desenha o vídeo (não precisa mexer) |
-| `tools/` | comandos (`voz`, `modelos`, `validar`, `render`, `novo-projeto`) |
+| `tools/` | comandos (`voz`, `modelos`, `youtube`, `validar`, `render`, `novo-projeto`) |
 | `assets/` | os personagens, cenário e modelos baixados (`assets/modelos/`) |
-| `preview/` | páginas para o criador **ver** personagens, cenário, modelos 3D e vozes |
+| `preview/` | páginas para o criador **ver** personagens, cenário, modelos 3D, vozes e YouTube |
 
-Para o criador ver os assets: `npm run preview` e abrir `http://localhost:3000` (menu **Personagens | Cenário | Modelos 3D | Vozes**).
+Para o criador ver os assets: `npm run preview` e abrir `http://localhost:3000` (menu **Personagens | Cenário | Modelos 3D | Vozes | YouTube**).
 
 ## 2. Primeiro uso — instalação guiada
 
@@ -76,17 +77,17 @@ Diga: "Tudo pronto! Me conta a ideia do vídeo e quanto tempo ele deve ter." (Se
 Entrada: **ideia** + **duração** (se não disser, use `duracaoPadraoSegundos`). Se o criador já trouxer um roteiro aprovado, pule para a etapa 4.
 
 1. **Projeto.** `node tools/novo-projeto.mjs "<título>"` cria `projects/<nome>/`.
-2. **Pesquisa.** Levante os fatos do tema (busca na web se tiver; senão, apenas o que você sabe com segurança). Anote fatos e fontes em `ideia.md`. Descarte o que for incerto.
+2. **Pesquisa (fatos + nicho no YouTube).** Levante os fatos do tema (busca na web se tiver; senão, apenas o que você sabe com segurança) e rode `node tools/youtube.mjs pesquisar "<tema>"` para ver títulos vencedores, tamanho médio e padrões do nicho. Anote fatos, fontes e ângulo em `ideia.md`. Descarte o que for incerto.
 3. **Sinopse → PORTÃO 1.** Apresente em poucas linhas: **gancho** (primeira frase), **cadeia de capítulos** (problema → solução), **reviravolta**, **pergunta final** e a contagem aproximada de cenas. **Espere a aprovação** (ou os ajustes) antes de continuar. **Exceção:** se o criador pediu **modo automático**, não espere: siga até entregar o vídeo pronto (e pule também o portão 2).
-4. **Narração.** Escreva `narracao.txt` seguindo `docs/roteiro-viral.md` (só o texto falado; ≈ duração × 2,6 palavras). Rode o checklist daquele arquivo.
+4. **Narração.** Escreva `narracao.txt` seguindo `docs/roteiro-viral.md` e `docs/youtube.md` (só o texto falado; ≈ duração × 2,6 palavras). Teste a primeira frase com `node tools/youtube.mjs gancho "<primeira frase>"` buscando nota **≥ 72**. Rode o checklist de `docs/roteiro-viral.md`.
 5. **Voz.** `node tools/voz.mjs gerar projects/<nome>`. Confira: duração próxima do pedido (±15%) e `coberturaTempos` ≥ 0,9. Se a duração ficou longe, ajuste o texto ou use `--velocidade`.
 6. **Plano de animação → Storyboard.** Leia `catalog/RESUMO.md`, `docs/processos.md` e `docs/storyboard.md` (uma vez por sessão). **Primeiro** escreva `projects/<nome>/plano-animacao.md`: uma linha por frase (de `frases.json`) dizendo **o que se move, o que flui, o que se transforma, quem faz a ação e qual cenário/plano**; nenhuma linha pode ficar vazia. **Depois** monte `storyboard.json` seguindo esse plano: **uma cena para uma ou duas frases**, 3–5 s por cena, cobrindo todo o áudio, **cada cena com pelo menos 2 tipos de animação** (movimento, fluxo, transformação, máquina, ação). `duracao` = duração do áudio + ~0,5 s. Aplique as regras da seção 5.
-7. **Validar.** `node tools/validar.mjs projects/<nome>` até **zerar os erros**; leia e trate os avisos de qualidade.
+7. **Validar e auditar YouTube.** Rode `node tools/validar.mjs projects/<nome>` até **zerar os erros** e `node tools/youtube.mjs auditar projects/<nome>` para revisar nota de gancho, ritmo de cortes, silêncios e pacote de clique.
 8. **Olhar os quadros.** `node tools/render.mjs projects/<nome> --quadros` gera 2 imagens por cena em `render/quadros/`. **Abra e olhe cada uma** com a checklist da seção 6; corrija e repita (até 3 rodadas).
 9. **Prévia → PORTÃO 2 (opcional).** `node tools/render.mjs projects/<nome> --previa` (rápido) e peça para o criador assistir `render/previa.mp4`. Se ele preferir o modo automático, pule.
 10. **Render final.** `node tools/render.mjs projects/<nome>` (1080×1920, 30 fps). Leva de 1 a poucos minutos.
-11. **Capa e postagem.** `node tools/render.mjs projects/<nome> --capa <segundos>` e escreva `postagem.md` (modelo em `docs/postagem.md`).
-12. **Entrega.** Diga onde estão `render/video.mp4`, `render/capa.png` e `postagem.md`, em 3–5 linhas, e pergunte se quer ajustes ou o próximo vídeo.
+11. **Capa e postagem.** `node tools/render.mjs projects/<nome> --capa <segundos>`, valide título + texto de capa com `node tools/youtube.mjs pacote --titulo "..." --capa "..."` (sem repetir palavras) e gere/revise `postagem.md` (`node tools/youtube.mjs preparar projects/<nome>` + modelo em `docs/postagem.md`).
+12. **Entrega.** Diga onde estão `render/video.mp4`, `render/capa.png`, `postagem.md` e a nota da auditoria YouTube, em 3–5 linhas, e pergunte se quer ajustes ou o próximo vídeo.
 
 ## 4. Regras de roteiro (resumo — o detalhe está em `docs/roteiro-viral.md`)
 
@@ -149,13 +150,14 @@ Entrada: **ideia** + **duração** (se não disser, use `duracaoPadraoSegundos`)
 npm install                                      # primeira vez
 node tools/voz.mjs diagnostico | instalar | testar | gerar projects/<nome>
 node tools/modelos.mjs buscar "<termo>" | baixar polyfork:<id> | listar
+node tools/youtube.mjs pesquisar "<tema>" | gancho "<frase>" | auditar projects/<nome> | preparar projects/<nome>
 node tools/novo-projeto.mjs "Título"
 node tools/validar.mjs projects/<nome>
 node tools/render.mjs projects/<nome> --quadros  # olhar cena por cena
 node tools/render.mjs projects/<nome> --previa   # 540×960 rápido
 node tools/render.mjs projects/<nome>            # final 1080×1920
 node tools/render.mjs projects/<nome> --capa 1.2 # capa em PNG
-npm run preview                                  # ver assets e o player no navegador
+npm run preview                                  # ver assets, vozes, modelos e YouTube no navegador
 npm run check                                    # testa o pack todo
 ```
 

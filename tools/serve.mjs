@@ -12,6 +12,10 @@ import { listarVozes as listarVozesElevenLabs } from './voz/elevenlabs.mjs';
 import {
   baixarModelo, buscarModelos, detalhesModelo, listarModelosLocais,
 } from './modelos/catalogo.mjs';
+import { FORMULAS_GANCHO, avaliarGancho } from './youtube/ganchos.mjs';
+import { avaliarTituloCapa, gerarPostagemMarkdown, normalizarMetadadosYoutube } from './youtube/pacote.mjs';
+import { auditarProjetoYoutube, analisarPostagemMd } from './youtube/retencao.mjs';
+import { pesquisarYoutube } from './youtube/pesquisa.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 lerEnv(root);
@@ -235,6 +239,127 @@ async function handleModelosApi(req, res, urlObj) {
   return sendJson(res, 404, { ok: false, error: 'Rota de modelos não encontrada.' });
 }
 
+async function handleYoutubeApi(req, res, urlObj) {
+  const pathname = urlObj.pathname;
+  lerEnv(root);
+
+  if (req.method === 'GET' && pathname === '/api/youtube/status') {
+    const projetos = listarProjetos().map((p) => {
+      const pasta = path.join(root, p.id);
+      const postArq = path.join(pasta, 'postagem.md');
+      const sbArq = path.join(pasta, 'storyboard.json');
+      const post = fs.existsSync(postArq) ? analisarPostagemMd(fs.readFileSync(postArq, 'utf8')) : { existe: false };
+      let sbTitulo = '';
+      if (fs.existsSync(sbArq)) {
+        try { sbTitulo = JSON.parse(fs.readFileSync(sbArq, 'utf8')).titulo || ''; } catch {}
+      }
+      return {
+        ...p,
+        temStoryboard: fs.existsSync(sbArq),
+        tituloStoryboard: sbTitulo,
+        postagem: post,
+      };
+    });
+    return sendJson(res, 200, {
+      ok: true,
+      youtubeApiConfigurada: Boolean(process.env.YOUTUBE_API_KEY),
+      formulas: FORMULAS_GANCHO.map(({ id, nome, formato, exemplo }) => ({ id, nome, formato, exemplo })),
+      projetos,
+    });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/youtube/auditar') {
+    const body = await readJsonBody(req);
+    const projeto = String(body.projeto || '');
+    if (!/^projects\/[a-zA-Z0-9_-]+$/.test(projeto)) {
+      return sendJson(res, 400, { ok: false, error: 'Projeto inválido.' });
+    }
+    const tagsOv = Array.isArray(body.tagsOverride)
+      ? body.tagsOverride
+      : (typeof body.tagsOverride === 'string' && body.tagsOverride.trim()
+        ? body.tagsOverride.split(',').map((s) => s.trim()).filter(Boolean)
+        : []);
+    const resAud = auditarProjetoYoutube(root, projeto, {
+      tituloOverride: body.tituloOverride ? String(body.tituloOverride) : '',
+      capaOverride: body.capaOverride ? String(body.capaOverride) : '',
+      descricaoOverride: body.descricaoOverride ? String(body.descricaoOverride) : '',
+      tagsOverride: tagsOv,
+    });
+    return sendJson(res, 200, { ok: true, projeto, auditoria: resAud });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/youtube/gancho') {
+    const body = await readJsonBody(req);
+    const avaliacao = avaliarGancho(String(body.texto || ''));
+    return sendJson(res, 200, { ok: true, ...avaliacao });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/youtube/pacote') {
+    const body = await readJsonBody(req);
+    const avaliacao = avaliarTituloCapa({
+      titulo: String(body.titulo || ''),
+      textoCapa: String(body.textoCapa || ''),
+      descricao: body.descricao !== undefined ? String(body.descricao) : undefined,
+      tags: body.tags ?? [],
+    });
+    return sendJson(res, 200, { ok: true, ...avaliacao });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/youtube/pesquisar') {
+    const q = urlObj.searchParams.get('q') || '';
+    const limite = Number(urlObj.searchParams.get('limite')) || 10;
+    const pesquisa = await pesquisarYoutube(q, { limite, apiKey: process.env.YOUTUBE_API_KEY });
+    return sendJson(res, 200, { ok: true, ...pesquisa });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/youtube/salvar-postagem') {
+    const body = await readJsonBody(req);
+    const projeto = String(body.projeto || '');
+    if (!/^projects\/[a-zA-Z0-9_-]+$/.test(projeto)) {
+      return sendJson(res, 400, { ok: false, error: 'Selecione um projeto válido para salvar o postagem.md.' });
+    }
+    const pasta = path.join(root, projeto);
+    if (!fs.existsSync(pasta)) {
+      return sendJson(res, 404, { ok: false, error: `Pasta do projeto não encontrada: ${projeto}` });
+    }
+    let sbTitulo = '';
+    const sbArq = path.join(pasta, 'storyboard.json');
+    if (fs.existsSync(sbArq)) {
+      try { sbTitulo = JSON.parse(fs.readFileSync(sbArq, 'utf8')).titulo || ''; } catch {}
+    }
+
+    const norm = normalizarMetadadosYoutube({
+      titulo: body.titulo,
+      textoCapa: body.textoCapa,
+      descricao: body.descricao,
+      tags: body.tags,
+      hashtags: body.hashtags,
+    });
+    const md = gerarPostagemMarkdown({
+      projetoTitulo: sbTitulo || path.basename(pasta),
+      titulo: norm.titulo,
+      textoCapa: norm.textoCapa,
+      descricao: norm.descricao,
+      hashtags: norm.hashtags,
+      tags: norm.tags,
+      comentarioFixado: body.comentarioFixado,
+    });
+    fs.writeFileSync(path.join(pasta, 'postagem.md'), md, 'utf8');
+    fs.writeFileSync(path.join(pasta, 'youtube.json'), JSON.stringify({ ...norm, comentarioFixado: String(body.comentarioFixado || '').trim(), atualizadoEm: new Date().toISOString() }, null, 2) + '\n', 'utf8');
+
+    const auditoria = fs.existsSync(sbArq) ? auditarProjetoYoutube(root, projeto) : null;
+    return sendJson(res, 200, {
+      ok: true,
+      projeto,
+      arquivo: `${projeto}/postagem.md`,
+      normalizado: norm,
+      auditoria,
+    });
+  }
+
+  return sendJson(res, 404, { ok: false, error: 'Rota YouTube não encontrada.' });
+}
+
 export function startServer(port = 3000, host = '0.0.0.0') {
   const server = http.createServer((req, res) => {
     const urlObj = new URL(req.url, 'http://x');
@@ -247,6 +372,12 @@ export function startServer(port = 3000, host = '0.0.0.0') {
     if (urlObj.pathname.startsWith('/api/modelos/')) {
       handleModelosApi(req, res, urlObj).catch((err) => {
         sendJson(res, 500, { ok: false, error: err?.message || 'Erro ao consultar modelos 3D.' });
+      });
+      return;
+    }
+    if (urlObj.pathname.startsWith('/api/youtube/')) {
+      handleYoutubeApi(req, res, urlObj).catch((err) => {
+        sendJson(res, 500, { ok: false, error: err?.message || 'Erro ao processar análise YouTube.' });
       });
       return;
     }

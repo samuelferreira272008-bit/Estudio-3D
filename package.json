@@ -16,6 +16,7 @@
     "catalog": "node tools/build-catalog.mjs",
     "check": "node tools/check.mjs",
     "modelos": "node tools/modelos.mjs",
+    "youtube": "node tools/youtube.mjs",
     "voz": "node tools/voz.mjs",
     "novo": "node tools/novo-projeto.mjs",
     "validar": "node tools/validar.mjs",
