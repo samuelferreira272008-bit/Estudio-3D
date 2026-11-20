@@ -29,19 +29,20 @@ O agente faz o resto: pesquisa, roteiro viral, narração, cenas 3D, legendas, v
 | `assets/` | 11 personagens (mesmo esqueleto), 20 animações e 57 itens de cenário (casas, prédios, ruas, veículos, obras, máquinas animadas, formas livres, tubos...) |
 | `engine/` + `tools/render.mjs` | o motor que desenha cada quadro e gera o MP4 |
 | `tools/voz.mjs` | diagnóstico do computador, voz grátis/paga e tempo de cada palavra |
+| `tools/modelos.mjs` | busca e baixa modelos `.glb` gratuitos (Polyfork e ThreeJS Assets) para `assets/modelos/` |
 | `catalog/` | catálogo dos assets (para a IA usar como diretor) |
 | `docs/` | storyboard, roteiro viral, voz e postagem |
 | `projects/exemplo-casa/` e `projects/exemplo-asfalto/` | dois vídeos de exemplo completos (roteiro, narração, storyboard); o do asfalto (120 s) é o **padrão de qualidade** a seguir |
-| `preview/` | páginas para **ver** os personagens, as animações e o cenário |
+| `preview/` | páginas para **ver** personagens, cenário, modelos 3D e vozes |
 
-Ver os assets no navegador: `npm install`, `npm run preview` e abrir http://localhost:5173 (menu **Personagens | Cenário**).
+Ver os assets no navegador: `npm install`, `npm run preview` e abrir http://localhost:3000 (menu **Personagens | Cenário | Modelos 3D | Vozes**).
 
 ## Comandos úteis
 
 ```bash
 npm install                                     # primeira vez
 npm run voz -- diagnostico                      # o seu computador roda a voz grátis?
-npm run voz -- instalar                         # instala a voz grátis (~0,5–1 GB em .voz/)
+npm run modelos -- buscar "car"                 # busca modelos .glb gratuitos para baixar
 npm run novo -- "Título do vídeo"               # cria a pasta de um vídeo
 npm run validar -- projects/<nome>              # confere o storyboard
 npm run render -- projects/<nome> --quadros     # imagens para conferir cena por cena

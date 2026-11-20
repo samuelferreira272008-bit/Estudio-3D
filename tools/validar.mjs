@@ -118,10 +118,42 @@ cenas.forEach((c, i) => {
   const nObjs = (c.objetos || []).length;
   if (nObjs > 30) A(`${P}: ${nObjs} objetos; muitos objetos deixam o render lento.`);
 
+  const resolverModeloLocal = (src) => {
+    const limpo = String(src || '').replace(/\\/g, '/').replace(/^\/+/, '');
+    if (!limpo || limpo.includes('..')) return null;
+    if (limpo.startsWith('assets/') || limpo.startsWith('projects/')) return path.join(raiz, limpo);
+    return path.join(pasta, limpo);
+  };
+  const modeloTemAnimacao = (src) => {
+    const abs = resolverModeloLocal(src);
+    if (!abs || !fs.existsSync(abs)) return false;
+    const metaArq = abs.replace(/\.(glb|gltf)$/i, '.meta.json');
+    if (fs.existsSync(metaArq)) {
+      try {
+        const meta = JSON.parse(fs.readFileSync(metaArq, 'utf8'));
+        if (Array.isArray(meta.animacoes) && meta.animacoes.length > 0) return true;
+      } catch { /* ignora meta malformado */ }
+    }
+    return false;
+  };
+
   for (const o of c.objetos || []) {
     addId(o.id, 'objeto');
+    const modSrc = o.modelo || o.glb;
+    if (modSrc) {
+      const abs = resolverModeloLocal(modSrc);
+      if (!abs) E(`${P}: caminho de modelo inválido "${modSrc}".`);
+      else if (!/\.(glb|gltf)$/i.test(abs)) E(`${P}: modelo "${modSrc}" precisa ser .glb ou .gltf.`);
+      else if (!fs.existsSync(abs)) E(`${P}: modelo "${modSrc}" não encontrado no disco. Baixe com: node tools/modelos.mjs baixar <fonte>:<id>`);
+      if (o.altura !== undefined && !(num(o.altura) && o.altura > 0)) E(`${P}: "altura" de "${o.id}" deve ser um número > 0 (metros).`);
+      if (o.escala !== undefined && !(num(o.escala) && o.escala > 0)) E(`${P}: "escala" de "${o.id}" deve ser um número > 0.`);
+      if (o.animVelocidade !== undefined && !num(o.animVelocidade)) E(`${P}: "animVelocidade" de "${o.id}" deve ser um número.`);
+      if (o.pos && !vec(o.pos, [2, 3])) E(`${P}: "pos" de "${o.id}" deve ser [x, z] ou [x, y, z].`);
+      if (o.movimentos) for (const m of o.movimentos) { if (!vec(m.para, [2]) || !dentro(m.de, m.ate, `movimento de "${o.id}"`)) E(`${P}: movimento de "${o.id}" inválido (precisa de de, ate e para:[x,z]).`); }
+      continue;
+    }
     const def = SCENERY[o.asset];
-    if (!def) { E(`${P}: asset "${o.asset}" não existe no catálogo (veja catalog/CATALOG.md).`); continue; }
+    if (!def) { E(`${P}: asset "${o.asset}" não existe no catálogo (veja catalog/CATALOG.md ou use "modelo": "assets/modelos/....glb").`); continue; }
     if (o.variante && !def.variants?.[o.variante]) E(`${P}: "${o.asset}" não tem a variante "${o.variante}" (opções: ${Object.keys(def.variants || {}).join(', ') || 'nenhuma'}).`);
     for (const k of Object.keys(o.params || {})) if (!(k in (def.params || {}))) E(`${P}: parâmetro "${k}" não existe em "${o.asset}" (opções: ${Object.keys(def.params || {}).join(', ') || 'nenhum'}).`);
     if (o.pos && !vec(o.pos, [2, 3])) E(`${P}: "pos" de "${o.id}" deve ser [x, z] ou [x, y, z].`);
@@ -190,7 +222,7 @@ cenas.forEach((c, i) => {
     if (objs.some((o) => (o.movimentos || []).length) || chars.some((p) => (p.movimentos || []).length)) kinds.add('movimento');
     if ((c.fluxos || []).length || (c.rastros || []).length) kinds.add('fluxo');
     if (objs.some((o) => (o.etapa && o.etapa.some((k) => k[1] !== o.etapa[0][1])) || o.aparece !== undefined || o.some !== undefined || o.anim)) kinds.add('transformação');
-    if (objs.some((o) => SCENERY[o.asset] && temUpdate(o.asset))) kinds.add('máquina');
+    if (objs.some((o) => (SCENERY[o.asset] && temUpdate(o.asset)) || ((o.modelo || o.glb) && o.animClip !== false && modeloTemAnimacao(o.modelo || o.glb)))) kinds.add('máquina');
     if (chars.some((p) => (p.acoes || []).some((a) => !['talk', 'idle', 'look_around'].includes(a.clip)))) kinds.add('ação');
     const fala = chars.some((p) => (p.acoes || []).some((a) => a.clip === 'talk'));
     const camDin = !!(c.camera && (c.camera.deriva || (c.camera.aproxima && c.camera.aproxima !== 1) || c.camera.tipo === 'travelling'));

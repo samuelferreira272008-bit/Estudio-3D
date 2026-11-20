@@ -38,11 +38,11 @@ Regras de conduta (valem sempre):
 | `projects/<nome>/` | um vídeo: `ideia.md`, `narracao.txt`, `storyboard.json`, áudio, `render/` |
 | `templates/` | modelos de canal, ideia e storyboard |
 | `engine/` | motor que desenha o vídeo (não precisa mexer) |
-| `tools/` | comandos (`voz`, `validar`, `render`, `novo-projeto`) |
-| `assets/` | os personagens e o cenário em código (não precisa mexer) |
-| `preview/` | páginas para o criador **ver** personagens, animações e cenário |
+| `tools/` | comandos (`voz`, `modelos`, `validar`, `render`, `novo-projeto`) |
+| `assets/` | os personagens, cenário e modelos baixados (`assets/modelos/`) |
+| `preview/` | páginas para o criador **ver** personagens, cenário, modelos 3D e vozes |
 
-Para o criador ver os assets: `npm run preview` e abrir `http://localhost:5173` (menu **Personagens | Cenário**).
+Para o criador ver os assets: `npm run preview` e abrir `http://localhost:3000` (menu **Personagens | Cenário | Modelos 3D | Vozes**).
 
 ## 2. Primeiro uso — instalação guiada
 
@@ -103,16 +103,16 @@ Entrada: **ideia** + **duração** (se não disser, use `duracaoPadraoSegundos`)
 - **Animação em toda cena (o validador exige):** pelo menos **2 tipos** entre `movimento` (objetos/personagens andando), `fluxo` (`fluxos`/`rastros`: pedra, líquido, água, fumaça, vapor, fogo, poeira, eletricidade...), `transformação` (`etapa`, `aparece`, `anim`, `monte` crescendo), `máquina` (assets que se mexem sozinhos: escavadeira, esteira, engrenagem, misturador, fábrica, betoneira...) e `ação` do personagem (cavar, martelar, empurrar, carregar, apontar). Câmera girando e boneco falando **não contam**.
 - **Mostre cada passo do processo** que a narração cita: o material, a máquina, a ação e o resultado. Se a frase fala "espalha pedra", a pedra tem que cair e espalhar na tela.
 - **Cenário real:** escolha `ambiente.fundo` pelo tema (`campo`, `cidade`, `floresta`, `deserto`, `litoral`, `industrial`, `interior`); põe personagens e objetos *dentro* desse cenário (rua com casas, obra com canteiro, cozinha com móveis etc.), com **personagens em mais da metade das cenas**.
-- **Tema sem asset pronto:** componha com `forma` (caixa, cilindro, esfera...), `tubo`, `fluxos` e `anim`; nunca escreva código próprio.
+- **Tema sem asset pronto:** primeiro busque um modelo `.glb` gratuito com `node tools/modelos.mjs buscar "<termo em inglês>"` (Polyfork baixa `.glb` grátis sem chave para `assets/modelos/` com `node tools/modelos.mjs baixar polyfork:<id>`). No `storyboard.json`, use `"modelo": "assets/modelos/<arquivo>.glb"` e `"altura": <metros>`. Se ainda faltar algo específico, componha com `forma`, `tubo`, `fluxos` e `anim`; nunca escreva código próprio.
 - **Primeira cena:** o título/pergunta do gancho na tela (`titulo`) já no início. **Última cena:** painel `pergunta` com a pergunta de comentário.
 - **Quem fala:** o personagem principal com `talk` + `fala: true` e `viraPara: camera`. Mantenha **o mesmo personagem para o mesmo papel** no vídeo inteiro.
-- **Continuidade:** repita o mesmo objeto (mesmo `asset`, `pos`, `params`) nas cenas seguintes; as cenas são montadas do zero.
+- **Continuidade:** repita o mesmo objeto (mesmo `asset` ou `modelo`, `pos`, `params`) nas cenas seguintes; as cenas são montadas do zero.
 - **Poucos textos:** título/destaque só no gancho, em no máximo 1–2 ideias-chave e na pergunta final. A legenda (uma palavra por vez, pequena, embaixo) já conta a história; o texto na tela nunca a repete.
 - **Elementos opcionais (`elementos` e `efeitos`) só quando o vídeo exigir:** `icone x`/`v` para contrastar errado/certo; `seta` para mostrar direção, força ou onde olhar; `etiqueta` para um dado ou rótulo curto; `pretoebranco` (com zoom) em momentos ruins/dramáticos (o problema, o desastre), geralmente junto de um `x` ou `alerta`. Use poucos, longe do rosto e da legenda.
 - **Visual:** `ambiente.clima: "chuva"` para cenas de chuva/enchente; `horario` varia o clima do vídeo; mantenha o mesmo ambiente na maior parte do vídeo.
 - **Câmera `enquadrar`:** `angulo` é contado **a partir da frente do alvo (`giro`)**. Para mostrar um personagem de frente com o cenário atrás, use `giro: 0` e ponha-o na frente da casa (z maior). Câmera dentro de um objeto = tela cinza/escura: sempre confira os quadros.
 - **Zonas da tela:** título 6–14%, destaque 16–24%, pergunta final 10–22%, legenda ~68% (uma palavra por vez). O destaque **acrescenta** informação (rótulo, número, provocação); até ~30 caracteres.
-- **Assets:** use os do catálogo. Se o tema pede algo que não existe (ex.: elevador, metrô), **componha com o que há** e diga ao criador a limitação com honestidade; não invente nomes de asset.
+- **Assets:** use os do catálogo (`catalog/RESUMO.md`) ou modelos `.glb` baixados em `assets/modelos/`. Não invente nomes de `asset` nem caminhos inexistentes.
 - **Peso:** evite muitas cópias de assets grandes (prédios) na mesma cena.
 
 ## 6. Checklist ao olhar os quadros (`render/quadros/`)
@@ -148,6 +148,7 @@ Entrada: **ideia** + **duração** (se não disser, use `duracaoPadraoSegundos`)
 ```bash
 npm install                                      # primeira vez
 node tools/voz.mjs diagnostico | instalar | testar | gerar projects/<nome>
+node tools/modelos.mjs buscar "<termo>" | baixar polyfork:<id> | listar
 node tools/novo-projeto.mjs "Título"
 node tools/validar.mjs projects/<nome>
 node tools/render.mjs projects/<nome> --quadros  # olhar cena por cena

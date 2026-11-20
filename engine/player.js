@@ -19,6 +19,9 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
 
 const DEG = Math.PI / 180;
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -629,7 +632,50 @@ function construirCena(def) {
   };
 
   for (const o of def.objetos || []) {
-    const obj = makeScenery(o.asset, { ...(o.variante ? { variant: o.variante } : {}), ...(o.params || {}) });
+    let obj;
+    let s = o.escala || 1;
+    let mixer = null;
+    let size;
+    const modSrc = o.modelo || o.glb;
+    if (modSrc) {
+      const cached = modelosCache.get(modSrc);
+      if (!cached) throw new Error(`Modelo 3D "${modSrc}" não foi pré-carregado.`);
+      const cloned = SkeletonUtils.clone(cached.gltf.scene);
+      cloned.position.set(0, 0, 0);
+      cloned.rotation.set(0, 0, 0);
+      cloned.scale.setScalar(1);
+      cloned.updateMatrixWorld(true);
+      const box0 = new THREE.Box3().setFromObject(cloned);
+      const c0 = box0.getCenter(new THREE.Vector3());
+      const s0 = box0.getSize(new THREE.Vector3());
+      // Centraliza no eixo X/Z e apoia a base exatamente em y = 0.
+      cloned.position.set(-c0.x, -box0.min.y, -c0.z);
+      cloned.traverse((m) => {
+        if (m.isMesh) {
+          m.castShadow = true;
+          m.receiveShadow = true;
+        }
+      });
+      obj = new THREE.Group();
+      obj.name = `modelo:${modSrc}`;
+      obj.add(cloned);
+      const fatorAltura = Number(o.altura) > 0 && s0.y > 1e-5 ? Number(o.altura) / s0.y : 1;
+      s = fatorAltura * (o.escala || 1);
+      size = s0.clone().multiplyScalar(s);
+
+      const clips = cached.gltf.animations || [];
+      if (clips.length && o.animClip !== false && o.animClip !== 'nenhuma') {
+        const chosen = typeof o.animClip === 'string'
+          ? (THREE.AnimationClip.findByName(clips, o.animClip) || clips[0])
+          : clips[0];
+        if (chosen) {
+          mixer = new THREE.AnimationMixer(cloned);
+          mixer.clipAction(chosen).play();
+        }
+      }
+    } else {
+      obj = makeScenery(o.asset, { ...(o.variante ? { variant: o.variante } : {}), ...(o.params || {}) });
+    }
     // "opacidade" < 1 deixa o objeto transparente (para mostrar o que há por dentro: máquinas, tubos, cortes)
     if (o.opacidade !== undefined && o.opacidade < 1) {
       obj.traverse((m) => {
@@ -644,10 +690,9 @@ function construirCena(def) {
     const holder = new THREE.Group();
     holder.add(obj);
     grp.add(holder);
-    const s = o.escala || 1;
     holder.scale.setScalar(s);
-    const size = sceneryBox(obj).getSize(new THREE.Vector3()).multiplyScalar(s);
-    novaEnt(o.id, 'objeto', holder, o, [size.x, size.y, size.z], { obj, escala: s });
+    if (!size) size = sceneryBox(obj).getSize(new THREE.Vector3()).multiplyScalar(s);
+    novaEnt(o.id, 'objeto', holder, o, [size.x, size.y, size.z], { obj, escala: s, mixer });
   }
 
   for (const c of def.personagens || []) {
@@ -729,6 +774,39 @@ function construirCena(def) {
   });
   return cena;
 }
+
+const dracoLoader = new DRACOLoader();
+dracoLoader.setDecoderPath('/node_modules/three/examples/jsm/libs/draco/gltf/');
+const gltfLoader = new GLTFLoader();
+gltfLoader.setDRACOLoader(dracoLoader);
+const modelosCache = new Map();
+
+function resolverUrlModelo(src) {
+  const limpo = String(src || '').replace(/^\/+/, '');
+  if (/^https?:\/\//i.test(src)) return src;
+  if (limpo.startsWith('assets/') || limpo.startsWith('projects/')) return `/${limpo}`;
+  return `/${projeto}/${limpo}`;
+}
+
+async function precarregarModelos() {
+  const fontes = new Set();
+  for (const c of sb.cenas || []) {
+    for (const o of c.objetos || []) {
+      const src = o.modelo || o.glb;
+      if (src) fontes.add(src);
+    }
+  }
+  await Promise.all([...fontes].map(async (src) => {
+    const url = resolverUrlModelo(src);
+    try {
+      const gltf = await gltfLoader.loadAsync(url);
+      modelosCache.set(src, { gltf });
+    } catch (err) {
+      throw new Error(`Não consegui carregar o modelo 3D "${src}": ${err?.message || err}`);
+    }
+  }));
+}
+await precarregarModelos();
 
 const cenas = sb.cenas.map((c, i) => {
   try { return construirCena(c); } catch (e) { throw new Error(`Cena ${i + 1} (${c.inicio}s): ${e.message}`); }
@@ -976,6 +1054,10 @@ window.renderAt = (t) => {
       }
     }
     if (ent.tipo === 'objeto') {
+      if (ent.mixer) {
+        const vel = d.animVelocidade ?? 1;
+        ent.mixer.setTime(Math.max(0, (t - cena.def.inicio) * vel));
+      }
       if (d.etapa) setProgress(ent.obj, clamp(chaves(d.etapa, t), 0, 1));
       updateScenery(ent.obj, t);
       rollWheels(ent.obj, p.dist);

@@ -72,6 +72,9 @@ As **cenas** devem cobrir o vídeo inteiro sem buracos: a primeira começa em `0
 |---|---|
 | `id` | nome único **na cena** (a câmera e os personagens referenciam por ele) |
 | `asset`, `variante`, `params` | do catálogo (`catalog/RESUMO.md`) |
+| `modelo` | caminho de arquivo `.glb`/`.gltf` local (ex.: `"assets/modelos/polyfork-ox-cart-c12bca.glb"` baixado com `node tools/modelos.mjs baixar`), no lugar de `asset`. O motor centraliza no chão (`y = 0`) automaticamente |
+| `altura` | altura desejada em metros para normalizar a escala de um `modelo` `.glb` (opcional) |
+| `animClip` / `animVelocidade` | se o `.glb` tiver animações embutidas, seleciona o nome do clip (`false` desliga) e multiplica a velocidade (opcional) |
 | `escala` | multiplica o tamanho (use com moderação) |
 | `etapa` | `[[tempo, 0..1], ...]`: etapa de obra, só nos assets "etapas" (`casa_obra`, `predio_estrutura`, `rua_camadas`, `corte_terreno`, `guindaste`, `caminhao_cacamba`) |
 | `aparece` / `some` | o objeto surge com um "pop" no instante dado / desaparece. Ótimo para revelar um item junto da fala |

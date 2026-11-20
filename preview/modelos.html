@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelos 3D externos — Polyfork e ThreeJS Assets</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body class="voz-page modelos-page">
+<main class="modelos-wrap">
+  <section class="voz-card modelos-busca-card">
+    <nav>
+      <a href="/preview/index.html">Personagens</a>
+      <a href="/preview/cenario.html">Cenário</a>
+      <a class="on" href="/preview/modelos.html">Modelos 3D</a>
+      <a href="/preview/voz.html">Vozes</a>
+    </nav>
+
+    <div class="voz-head">
+      <h1>Biblioteca de Modelos 3D (.glb)</h1>
+      <p id="status-modelos" class="muted">Carregando fontes...</p>
+    </div>
+
+    <form id="form-busca" class="modelos-filtros">
+      <div class="modelos-search-row">
+        <input id="q" type="text" placeholder="Buscar em inglês (ex.: excavator, car, tree, robot, house)">
+        <button id="btn-buscar" type="submit" class="btn-primary">Buscar</button>
+      </div>
+
+      <div class="voz-grid">
+        <label>Fonte
+          <select id="fonte">
+            <option value="todas">Todas (Polyfork + ThreeJS Assets)</option>
+            <option value="polyfork">Polyfork (Download .glb grátis)</option>
+            <option value="threejsassets">ThreeJS Assets (Catálogo público)</option>
+            <option value="local">Baixados no projeto (assets/modelos/)</option>
+          </select>
+        </label>
+
+        <label>Detalhe máximo
+          <select id="max-tri">
+            <option value="0">Qualquer quantidade de triângulos</option>
+            <option value="2000">Até 2.000 tri (ultra leve)</option>
+            <option value="5000" selected>Até 5.000 tri (low-poly)</option>
+            <option value="15000">Até 15.000 tri</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="modelos-checks">
+        <label class="check-inline"><input id="gratis" type="checkbox" checked> Apenas gratuitos</label>
+        <button id="btn-locais" type="button" class="btn-compact">Ver baixados (<span id="qtd-locais">0</span>)</button>
+      </div>
+    </form>
+
+    <div id="feedback-modelos" class="feedback" role="status" aria-live="polite"></div>
+
+    <div id="resultados" class="modelos-grid" aria-live="polite"></div>
+
+    <p class="muted modelos-credito">
+      Modelos gratuitos via <a href="https://polyfork.dev" target="_blank" rel="noreferrer">Polyfork</a> e catálogo público
+      <a href="https://threejsassets.com/partner" target="_blank" rel="noreferrer">Assets by ThreeJS Assets</a>.
+    </p>
+  </section>
+
+  <section class="voz-card modelos-viewer-card">
+    <div class="viewer-topo">
+      <h2 id="viewer-titulo">Visualizador 3D</h2>
+      <div class="viewer-acoes-topo">
+        <label class="check-inline"><input id="mostrar-ref" type="checkbox" checked> Escala (1,72 m)</label>
+        <button id="btn-cam" type="button" class="btn-compact">Enquadrar</button>
+      </div>
+    </div>
+
+    <div class="visor-box">
+      <canvas id="visor-3d"></canvas>
+      <div id="visor-vazio" class="visor-overlay">
+        Clique em <b>Baixar e ver 3D</b> em qualquer modelo ao lado para importá-lo em <code>assets/modelos/</code> e inspecionar aqui.
+      </div>
+    </div>
+
+    <div id="anim-bar" class="modelos-anim-bar" hidden>
+      <label>Animação GLB
+        <select id="anim-clip"></select>
+      </label>
+      <button id="btn-anim-play" type="button" class="btn-compact">Pausar</button>
+    </div>
+
+    <div id="modelo-detalhes" class="muted">Nenhum modelo carregado no visor.</div>
+
+    <div id="snippet-box" class="snippet-box" hidden>
+      <div class="snippet-head">
+        <label class="altura-label">Altura no vídeo (m)
+          <input id="altura-desejada" type="number" min="0.1" max="50" step="0.1" value="2">
+        </label>
+        <button id="btn-copiar" type="button" class="btn-primary">Copiar JSON p/ storyboard</button>
+      </div>
+      <pre id="snippet-code"></pre>
+    </div>
+  </section>
+</main>
+
+<script type="importmap">
+{ "imports": {
+  "three": "/node_modules/three/build/three.module.js",
+  "three/addons/": "/node_modules/three/examples/jsm/"
+} }
+</script>
+<script type="module" src="./modelos.js"></script>
+</body>
+</html>

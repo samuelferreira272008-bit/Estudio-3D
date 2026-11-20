@@ -9,6 +9,9 @@ import { listarVozesEdge, VOZES_EDGE_CURADAS, VOZ_EDGE_PADRAO } from './voz/edge
 import { MODELO_GEMINI_TTS_PADRAO, VOZES_GEMINI, VOZ_GEMINI_PADRAO } from './voz/gemini.mjs';
 import { VOZES_GOOGLE, VOZ_GOOGLE_PADRAO } from './voz/google.mjs';
 import { listarVozes as listarVozesElevenLabs } from './voz/elevenlabs.mjs';
+import {
+  baixarModelo, buscarModelos, detalhesModelo, listarModelosLocais,
+} from './modelos/catalogo.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 lerEnv(root);
@@ -176,12 +179,74 @@ async function handleApi(req, res, urlObj) {
   return sendJson(res, 404, { ok: false, error: 'Rota de API não encontrada.' });
 }
 
+async function handleModelosApi(req, res, urlObj) {
+  const pathname = urlObj.pathname;
+  lerEnv(root);
+
+  if (req.method === 'GET' && pathname === '/api/modelos/status') {
+    const locais = listarModelosLocais(root);
+    return sendJson(res, 200, {
+      ok: true,
+      locaisTotal: locais.length,
+      fontes: {
+        polyfork: { nome: 'Polyfork', gratisSemChave: true, chaveConfigurada: Boolean(process.env.POLYFORK_KEY) },
+        threejsassets: { nome: 'ThreeJS Assets', catalogoSemChave: true, downloadComChave: Boolean(process.env.TJA_API_KEY) },
+      },
+    });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/modelos/locais') {
+    return sendJson(res, 200, { ok: true, modelos: listarModelosLocais(root) });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/modelos/buscar') {
+    const q = urlObj.searchParams.get('q') || '';
+    const fonte = urlObj.searchParams.get('fonte') || 'todas';
+    const apenasGratis = urlObj.searchParams.get('gratis') !== '0';
+    const maxTriangulos = Number(urlObj.searchParams.get('maxTriangulos')) || 0;
+    const limite = Number(urlObj.searchParams.get('limite')) || 18;
+    const pagina = Number(urlObj.searchParams.get('pagina')) || 1;
+    const resBusca = await buscarModelos({
+      root,
+      q,
+      fonte,
+      apenasGratis,
+      maxTriangulos,
+      limite,
+      pagina,
+      env: process.env,
+    });
+    return sendJson(res, 200, { ok: true, ...resBusca });
+  }
+
+  if (req.method === 'GET' && pathname === '/api/modelos/detalhes') {
+    const spec = urlObj.searchParams.get('id') || '';
+    const det = await detalhesModelo(spec, process.env);
+    return sendJson(res, 200, { ok: true, item: det.item });
+  }
+
+  if (req.method === 'POST' && pathname === '/api/modelos/baixar') {
+    const body = await readJsonBody(req);
+    const spec = body.chave || (body.fonte && body.id ? `${body.fonte}:${body.id}` : body.id);
+    const meta = await baixarModelo(root, spec, process.env);
+    return sendJson(res, 200, { ok: true, modelo: meta });
+  }
+
+  return sendJson(res, 404, { ok: false, error: 'Rota de modelos não encontrada.' });
+}
+
 export function startServer(port = 3000, host = '0.0.0.0') {
   const server = http.createServer((req, res) => {
     const urlObj = new URL(req.url, 'http://x');
     if (urlObj.pathname.startsWith('/api/voz/')) {
       handleApi(req, res, urlObj).catch((err) => {
         sendJson(res, 500, { ok: false, error: err?.message || 'Erro ao processar solicitação de voz.' });
+      });
+      return;
+    }
+    if (urlObj.pathname.startsWith('/api/modelos/')) {
+      handleModelosApi(req, res, urlObj).catch((err) => {
+        sendJson(res, 500, { ok: false, error: err?.message || 'Erro ao consultar modelos 3D.' });
       });
       return;
     }
